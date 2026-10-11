@@ -15,6 +15,13 @@ extends Node3D
 # - recenter(): the simulated ripple square follows the boat (re-centred when
 #   the boat is RECENTER_DISTANCE from its centre) with no frame of missing
 #   water, and the ocean's waves stay put in the world while it moves.
+#   That makes this an endless ocean: the FFT waves are periodic and fixed to
+#   the world, so they have no edge; only the small square where the boat
+#   splashes is bounded, and it travels with the boat, while render_extent
+#   draws the sea out to the horizon. Drive as far as you like. (The one limit
+#   is float precision hundreds of km from the origin, as in any Godot scene.)
+#   A custom water material must sample the ocean at world X/Z for this --
+#   see water_surface.gdshader's cuv_o -- or its waves slide on every recenter.
 # - PhysXWaterWake3D.hull_profile: a tapered hull's foam follows its sides.
 
 const RECENTER_DISTANCE := 10.0
@@ -104,9 +111,9 @@ func _process(delta: float) -> void:
 		_water.recenter(bp)
 		_recenters += 1
 
-	_hud.text = "Sea: %s  (intensity %.2f%s)\nwind %.1f m/s, waves x%.2f   ripple square re-centred %d times\nwake hull: %s   [1/2/3] calm/breezy/storm  [4] auto cycle  [H] hull outline  [WASD] drive" % [
+	_hud.text = "Sea: %s  (intensity %.2f%s)\nwind %.1f m/s, waves x%.2f   ripple square re-centred %d times\nendless ocean: %.0f m from the origin -- the ripple square follows the boat, the waves have no edge\nwake hull: %s   [1/2/3] calm/breezy/storm  [4] auto cycle  [H] hull outline  [WASD] drive" % [
 		_sea_name(), _intensity, ", auto" if _auto else "", _water.wind_speed, _water.wave_amplitude, _recenters,
-		"pointed skiff" if _profiled else "box"]
+		Vector2(bp.x, bp.z).length(), "pointed skiff" if _profiled else "box"]
 
 
 func _apply(_initial: bool) -> void:
