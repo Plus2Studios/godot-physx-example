@@ -19,6 +19,10 @@ extends Node3D
 @onready var _light: Light3D = $GreenLight
 
 
+func _ready() -> void:
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
@@ -36,6 +40,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	var on := ["off", "on"]
-	_label.text = "Light scattering: %s [L]   shadows: %s [K]   green light: %s [G]\nWASD + right mouse: fly   FPS %d" % [
+	# Where the frame goes: CPU process/physics (ms) and GPU render time (the
+	# light scattering pass is part of the render), plus Flow's own step and how
+	# many sparse blocks the gas is using -- the main driver of its GPU cost.
+	var vp_rid := get_viewport().get_viewport_rid()
+	var stats: Dictionary = _flow.get_stats()
+	_label.text = "Light scattering: %s [L]   shadows: %s [K]   green light: %s [G]\nWASD + right mouse: fly   FPS %d\nprocess %.2f ms   physics %.2f ms   render cpu %.2f ms   gpu %.2f ms\nflow step %.2f ms   active blocks %d / %d" % [
 		on[int(_flow.get("light_scattering"))], on[int(_flow.get("scattering_receive_shadows") != 0)], on[int(_light.visible)],
-		Engine.get_frames_per_second()]
+		Engine.get_frames_per_second(),
+		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
+		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+		RenderingServer.viewport_get_measured_render_time_cpu(vp_rid) + RenderingServer.get_frame_setup_time_cpu(),
+		RenderingServer.viewport_get_measured_render_time_gpu(vp_rid),
+		stats.get("step_ms", 0.0), stats.get("active_blocks", 0), _flow.get("max_blocks")]
