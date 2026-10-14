@@ -6,13 +6,21 @@ extends SceneTree
 #   direction: a positive target is a NEGATIVE angular velocity about that joint
 #   axis (clockwise, as Godot's joint angles run);
 #   the angular force limit is a torque: 0.5 N m on I = 1/6 kg m^2 -> 3 rad/s^2;
-#   the linear force limit is a force: 2 N on 1 kg -> 2 m/s^2.
+#   the linear force limit is a force: 2 N on 1 kg -> 2 m/s^2;
+#   live changes act: a new target velocity, and a motor switched off lets the box
+#   spin on freely (it used to brake to a stop) -- even after it fell asleep;
+#   a slow motor (50 kg box, 1.5 N m: 0.18 rad/s^2) spins up from rest instead of
+#   being put to sleep first (PhysX drives don't keep a body awake). Beyond Jolt:
+#   Jolt puts this one to sleep too (0.00 rad/s), only faster motors get going there.
 
 const TARGET := 2.0
 
 var _cases := []
 var _t := 0
 var _ok := true
+var _live: Generic6DOFJoint3D
+var _last_joint: Generic6DOFJoint3D
+var _live_box: RigidBody3D
 
 
 func _check(cond: bool, msg: String) -> void:
@@ -41,6 +49,7 @@ func _make(x: float, setup: Callable) -> RigidBody3D:
 	j.position = Vector3(x, 5, 0)
 	get_root().add_child(j)
 	setup.call(j)
+	_last_joint = j
 	j.node_a = j.get_path_to(anchor)
 	j.node_b = j.get_path_to(box)
 	return box
@@ -60,7 +69,16 @@ func _initialize() -> void:
 	for a in axes:
 		_cases.append({"kind": "spin", "axis": a, "dir": axes[a], "box": _make(x, _angular(a, TARGET, 1000.0))})
 		x += 4.0
+	var live_box := _make(x, _angular("y", TARGET, 1000.0))
+	_live = _last_joint
+	_live_box = live_box
+	x += 4.0
 	_cases.append({"kind": "torque", "box": _make(x, _angular("x", 10.0, 0.5))})
+	x += 4.0
+	var slow := _make(x, _angular("y", 3.0, 1.5))
+	slow.mass = 50.0
+	slow.can_sleep = true
+	_cases.append({"kind": "slow", "box": slow})
 	x += 4.0
 	_cases.append({"kind": "force", "box": _make(x, func(j: Generic6DOFJoint3D) -> void:
 		j.set("linear_limit_x/enabled", false)
@@ -94,5 +112,27 @@ func _tick() -> void:
 			var other: float = (box.angular_velocity - c.dir * w).length()
 			print("[6dof_motor] motor %s: %.3f rad/s about the axis, %.3f about the others" % [c.axis, w, other])
 			_check(absf(w + TARGET) < 0.1 and other < 0.1, "angular motor %s spins at -%.1f rad/s about its axis, as Jolt (got %.2f)" % [c.axis, TARGET, w])
+		var lw := _live_box.angular_velocity.y
+		_check(absf(lw + TARGET) < 0.1, "live: motor y at +2 -> %.2f rad/s" % lw)
+		_live.set("angular_motor_y/target_velocity", -1.0)
+	if _t == 91:
+		var lw := _live_box.angular_velocity.y
+		_check(absf(lw - 1.0) < 0.1, "live: target changed to -1 -> %.2f rad/s (want +1)" % lw)
+		_live.set("angular_motor_y/enabled", false)
+	if _t == 121:
+		for c in _cases:
+			if c.kind == "slow":
+				var sw := absf((c.box as RigidBody3D).angular_velocity.y)
+				_check(absf(sw - 0.36) < 0.05, "slow motor spins up from rest: %.2f rad/s after 2 s (want ~0.36, 1.5 N m / 8.33 kg m^2)" % sw)
+		var lw := _live_box.angular_velocity.y
+		_check(absf(lw - 1.0) < 0.1, "live: motor off -> spins on freely at %.2f rad/s (want +1, not braked)" % lw)
+		_live_box.angular_velocity = Vector3.ZERO
+		_live_box.can_sleep = true
+		_live_box.sleeping = true
+	if _t == 131:
+		_live.set("angular_motor_y/enabled", true)
+	if _t == 161:
+		var lw := _live_box.angular_velocity.y
+		_check(absf(lw - 1.0) < 0.1, "live: motor back on while asleep -> %.2f rad/s (want +1)" % lw)
 		print("[6dof_motor] ", "PASS" if _ok else "FAIL")
 		quit(0 if _ok else 1)
