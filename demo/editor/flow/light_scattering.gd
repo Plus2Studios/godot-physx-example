@@ -1,7 +1,8 @@
 extends Node3D
 
-# PhysXFlow3D.light_scattering: three glowing blocks standing in a sea of ground
-# fog, each with a light inside that glows in the fog in its own color. The fog
+# PhysXFlow3D.light_scattering: three blocks standing in a sea of ground fog,
+# each lit by a colored light beside it that glows in the fog around it (and
+# casts the blocks' shadows through it). The fog
 # is one thin, cold box emitter over the whole floor (it feeds gently and stays
 # down), churned by smoke-free stirrers scattered across it; the blocks are
 # solids the fog flows around. A little of Godot's own volumetric fog lets the

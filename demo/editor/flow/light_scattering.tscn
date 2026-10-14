@@ -24,10 +24,7 @@ material = SubResource("Mat_ground")
 size = Vector3(60, 1, 60)
 
 [sub_resource type="StandardMaterial3D" id="Mat_Yellow"]
-albedo_color = Color(1, 0.9, 0.6, 1)
-emission_enabled = true
-emission = Color(1, 0.9, 0.6, 1)
-emission_energy_multiplier = 3.0
+albedo_color = Color(0.8, 0.8, 0.82, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_Yellow"]
 material = SubResource("Mat_Yellow")
@@ -37,10 +34,7 @@ size = Vector3(0.55, 1, 0.55)
 size = Vector3(0.55, 1, 0.55)
 
 [sub_resource type="StandardMaterial3D" id="Mat_Red"]
-albedo_color = Color(1, 0.3, 0.25, 1)
-emission_enabled = true
-emission = Color(1, 0.3, 0.25, 1)
-emission_energy_multiplier = 3.0
+albedo_color = Color(0.8, 0.8, 0.82, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_Red"]
 material = SubResource("Mat_Red")
@@ -50,10 +44,7 @@ size = Vector3(0.5, 2, 0.5)
 size = Vector3(0.5, 2, 0.5)
 
 [sub_resource type="StandardMaterial3D" id="Mat_Green"]
-albedo_color = Color(0.3, 1, 0.45, 1)
-emission_enabled = true
-emission = Color(0.3, 1, 0.45, 1)
-emission_energy_multiplier = 3.0
+albedo_color = Color(0.8, 0.8, 0.82, 1)
 
 [sub_resource type="BoxMesh" id="Mesh_Green"]
 material = SubResource("Mat_Green")
@@ -316,15 +307,13 @@ transform = Transform3D(0.882948, -0.446494, -0.145075, 0.469472, 0.839733, 0.27
 shape = SubResource("Shape_Yellow")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="YellowBlock"]
-layers = 2
 mesh = SubResource("Mesh_Yellow")
 
 [node name="YellowLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.65, -1.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.1, -0.95)
 light_color = Color(1, 0.9, 0.6, 1)
 light_energy = 2.5
 shadow_enabled = true
-shadow_caster_mask = 1048573
 omni_range = 6
 
 [node name="RedBlock" type="StaticBody3D" parent="."]
@@ -334,15 +323,13 @@ transform = Transform3D(0.829038, 0.537531, -0.154134, -0.559193, 0.796922, -0.2
 shape = SubResource("Shape_Red")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RedBlock"]
-layers = 4
 mesh = SubResource("Mesh_Red")
 
 [node name="RedLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.75, 0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.4, 0.65)
 light_color = Color(1, 0.3, 0.25, 1)
 light_energy = 3
 shadow_enabled = true
-shadow_caster_mask = 1048571
 omni_range = 6
 
 [node name="GreenBlock" type="StaticBody3D" parent="."]
@@ -352,15 +339,13 @@ transform = Transform3D(0.866025, 0.17101, 0.469846, 0, 0.939693, -0.34202, -0.5
 shape = SubResource("Shape_Green")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="GreenBlock"]
-layers = 8
 mesh = SubResource("Mesh_Green")
 
 [node name="GreenLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.85, -1.9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.15, 1, -1.35)
 light_color = Color(0.3, 1, 0.45, 1)
 light_energy = 2.5
 shadow_enabled = true
-shadow_caster_mask = 1048567
 omni_range = 6
 
 [node name="Camera3D" type="Camera3D" parent="."]
