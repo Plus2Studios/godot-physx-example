@@ -1,6 +1,6 @@
 extends SceneTree
 
-# PhysXFlow3D.scattering_shadows: a shadow-casting OmniLight3D in a fog layer, with
+# PhysXFlow3D.scattering_receive_shadows: a shadow-casting OmniLight3D in a fog layer, with
 # a wall on one side of it. Seen from above, the light's glow in the fog (each
 # capture minus one with scattering off, so Flow's own lighting drops out) is
 # about the same on both sides with shadows off; with them on, the fog behind the
@@ -26,8 +26,8 @@ func _initialize() -> void:
 		print("[flow_shadow] SKIP: this build has no Flow support (flow_sdk=)")
 		quit(0)
 		return
-	if not ClassDB.class_has_method("PhysXFlow3D", "set_scattering_shadows"):
-		print("[flow_shadow] PhysXFlow3D has no scattering_shadows -> FAIL")
+	if not ClassDB.class_has_method("PhysXFlow3D", "set_scattering_receive_shadows"):
+		print("[flow_shadow] PhysXFlow3D has no scattering_receive_shadows -> FAIL")
 		quit(1)
 		return
 	var root := Node3D.new()
@@ -119,11 +119,11 @@ func _process(_d: float) -> bool:
 	if _flow == null:
 		return true
 	_tick += 1
-	# [tick to capture, light_scattering, scattering_shadows]
+	# [tick to capture, light_scattering, receive omni + spot shadows]
 	for cap in [[180, false, false], [210, true, false], [240, true, true]]:
 		if _tick == cap[0] - 12:
 			_flow.set("light_scattering", cap[1])
-			_flow.set("scattering_shadows", cap[2])
+			_flow.set("scattering_receive_shadows", 3 if cap[2] else 0)
 		if _tick == cap[0]:
 			var img := get_root().get_texture().get_image()
 			img.save_png("res://excluded/shots/flow_shadow_%s_%s.png" % ["scatter" if cap[1] else "none", "shadows" if cap[2] else "noshadows"])
