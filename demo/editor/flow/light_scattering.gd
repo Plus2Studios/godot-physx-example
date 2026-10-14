@@ -1,20 +1,21 @@
 extends Node3D
 
-# PhysXFlow3D.light_scattering: three blocks standing in a sea of ground fog,
-# each lit by a colored light beside it that glows in the fog around it (and
-# casts the blocks' shadows through it). The fog
-# is one thin, cold box emitter over the whole floor (it feeds gently and stays
-# down), churned by smoke-free stirrers scattered across it; the blocks are
-# solids the fog flows around. A little of Godot's own volumetric fog lets the
-# lights glow in the air above it too.
+# PhysXFlow3D.light_scattering: a green light low in a swirling sea of ground fog,
+# ringed by pillars and a leaning slab. The light glows through the fog around
+# it, and the pillars, the slab and the walker cast dark shafts through that
+# glow (PhysXFlow3D.scattering_shadows). The fog is one thin, cold box emitter
+# over the whole floor (it feeds gently and stays down), wheeled round the light
+# by smoke-free stirrers; a capsule on a spinning hub wades through it. A dim
+# blue moon keeps the rest of the fog dark.
 #
 #   L        light scattering on / off
-#   1 2 3    yellow / red / green light on / off
+#   K        scattering shadows on / off
+#   G        the green light on / off
 #   WASD + right mouse   fly the camera
 
 @onready var _flow: Node = $PhysXFlow3D
 @onready var _label: Label = $HUD/Label
-@onready var _lights: Array[Light3D] = [$YellowLight, $RedLight, $GreenLight]
+@onready var _light: Light3D = $GreenLight
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -23,9 +24,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	match event.keycode:
 		KEY_L:
 			_flow.set("light_scattering", not _flow.get("light_scattering"))
-		KEY_1, KEY_2, KEY_3:
-			var light := _lights[event.keycode - KEY_1]
-			light.visible = not light.visible
+		KEY_K:
+			_flow.set("scattering_shadows", not _flow.get("scattering_shadows"))
+		KEY_G:
+			_light.visible = not _light.visible
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -33,6 +35,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	var on := ["off", "on"]
-	_label.text = "Light scattering: %s  [L]\nLights: yellow %s [1]  red %s [2]  green %s [3]\nWASD + right mouse: fly   FPS %d" % [
-		on[int(_flow.get("light_scattering"))], on[int(_lights[0].visible)], on[int(_lights[1].visible)], on[int(_lights[2].visible)],
+	_label.text = "Light scattering: %s [L]   shadows: %s [K]   green light: %s [G]\nWASD + right mouse: fly   FPS %d" % [
+		on[int(_flow.get("light_scattering"))], on[int(_flow.get("scattering_shadows"))], on[int(_light.visible)],
 		Engine.get_frames_per_second()]
