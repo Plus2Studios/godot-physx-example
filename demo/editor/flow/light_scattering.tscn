@@ -1,0 +1,281 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://demo/common/fly_camera_node.gd" id="1_cam"]
+[ext_resource type="Script" path="res://demo/editor/flow/light_scattering.gd" id="2_demo"]
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 1
+background_color = Color(0.09, 0.1, 0.12, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.32, 0.36, 1)
+tonemap_mode = 2
+glow_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.012
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ground"]
+albedo_color = Color(0.2, 0.21, 0.23, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_ground"]
+material = SubResource("Mat_ground")
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Yellow"]
+albedo_color = Color(1, 0.9, 0.6, 1)
+emission_enabled = true
+emission = Color(1, 0.9, 0.6, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxMesh" id="Mesh_Yellow"]
+material = SubResource("Mat_Yellow")
+size = Vector3(0.55, 1, 0.55)
+
+[sub_resource type="BoxShape3D" id="Shape_Yellow"]
+size = Vector3(0.55, 1, 0.55)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Red"]
+albedo_color = Color(1, 0.3, 0.25, 1)
+emission_enabled = true
+emission = Color(1, 0.3, 0.25, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxMesh" id="Mesh_Red"]
+material = SubResource("Mat_Red")
+size = Vector3(0.5, 2, 0.5)
+
+[sub_resource type="BoxShape3D" id="Shape_Red"]
+size = Vector3(0.5, 2, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Green"]
+albedo_color = Color(0.3, 1, 0.45, 1)
+emission_enabled = true
+emission = Color(0.3, 1, 0.45, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxMesh" id="Mesh_Green"]
+material = SubResource("Mat_Green")
+size = Vector3(0.7, 0.7, 0.7)
+
+[sub_resource type="BoxShape3D" id="Shape_Green"]
+size = Vector3(0.7, 0.7, 0.7)
+
+[node name="FlowLightScattering" type="Node3D"]
+script = ExtResource("2_demo")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8, 0.536656, -0.268328, -0, 0.447214, 0.894427, 0.6, -0.715542, 0.357771, 0, 10, 0)
+light_color = Color(0.85, 0.88, 1, 1)
+light_energy = 0.6
+light_volumetric_fog_energy = 0.0
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Shape_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_ground")
+
+[node name="PhysXFlow3D" type="PhysXFlow3D" parent="."]
+cell_size = 0.1
+max_blocks = 3072
+buoyancy = 2.0
+cooling_rate = 0.15
+smoke_fade = 0.015
+vorticity = 4.0
+combustion = false
+collision_range = 12.0
+floor_enabled = true
+smoke_density = 2.0
+smoke_color = Color(0.62, 0.64, 0.68, 1)
+emission_strength = 0.0
+light_scattering = true
+scattering_strength = 0.5
+
+[node name="GroundFog" type="PhysXFlowEmitter3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -1)
+flow = NodePath("../PhysXFlow3D")
+shape = 1
+size = Vector3(16, 0.6, 14)
+temperature = -1.0
+smoke = 2.0
+couple_rate = 0.3
+
+[node name="Stirrers" type="Node3D" parent="."]
+
+[node name="Stirrer1" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(0.812454, -0.0434005, 0.581407, 0, 0.997225, 0.0744402, -0.583025, -0.0604792, 0.8102, -2.11401, 0.35, -5.34066)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.867941
+velocity = Vector3(0, 0, -1.6754)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer2" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.233419, -0.0502784, -0.971076, 0, 0.998662, -0.0517067, 0.972376, -0.0120693, -0.233107, -5.30401, 0.35, -1.41821)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.634928
+velocity = Vector3(0, 0, -1.31793)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer3" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.701764, 0.0155741, -0.712239, 0, 0.999761, 0.0218611, 0.712409, 0.0153414, -0.701596, -0.90577, 0.35, 2.09537)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.913717
+velocity = Vector3(0, 0, -2.43202)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer4" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(0.148641, 0.0824779, -0.985446, -0, 0.996516, 0.0834044, 0.988891, -0.0123973, 0.148123, 0.925235, 0.35, -2.63651)
+flow = NodePath("../../PhysXFlow3D")
+radius = 1.02923
+velocity = Vector3(0, 0, -1.57649)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer5" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.933246, 0.0655703, 0.353204, 0, 0.983201, -0.182526, -0.359239, -0.170341, -0.917568, -4.26894, 0.35, -5.70429)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.690363
+velocity = Vector3(0, 0, -1.95608)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer6" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(0.295508, -0.0743135, 0.952446, 0, 0.99697, 0.0777874, -0.95534, -0.0229868, 0.294613, 1.66696, 0.35, -2.90363)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.629801
+velocity = Vector3(0, 0, -1.46775)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer7" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.91987, 0.0409378, 0.390082, 0, 0.994538, -0.104373, -0.392224, -0.09601, -0.914845, 2.1648, 0.35, -2.29648)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.826592
+velocity = Vector3(0, 0, -1.5897)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer8" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.999312, -0.00372831, -0.0368963, 0, 0.994933, -0.100536, 0.0370842, -0.100467, -0.994249, 3.53255, 0.35, 0.688939)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.862598
+velocity = Vector3(0, 0, -2.33768)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer9" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(0.124243, 0.0581224, -0.990548, -0, 0.998283, 0.0585762, 0.992252, -0.0072777, 0.12403, 2.75334, 0.35, -3.83268)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.809061
+velocity = Vector3(0, 0, -2.18428)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer10" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.243862, -0.128686, -0.961234, 0, 0.991157, -0.132692, 0.96981, -0.0323585, -0.241706, -4.17619, 0.35, -1.62141)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.982285
+velocity = Vector3(0, 0, -1.94493)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer11" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(0.941508, 0.0361944, 0.335042, 0, 0.994215, -0.107405, -0.336991, 0.101122, 0.936062, 4.50573, 0.35, -3.54878)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.889948
+velocity = Vector3(0, 0, -1.79307)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="Stirrer12" type="PhysXFlowEmitter3D" parent="Stirrers"]
+transform = Transform3D(-0.162027, 0.129571, 0.978242, 0, 0.991342, -0.131306, -0.986786, -0.0212753, -0.160625, 4.07961, 0.35, 3.39149)
+flow = NodePath("../../PhysXFlow3D")
+radius = 0.630335
+velocity = Vector3(0, 0, -2.11194)
+temperature = -1.0
+smoke = 0.0
+couple_rate = 0.8
+
+[node name="YellowBlock" type="StaticBody3D" parent="."]
+transform = Transform3D(0.882948, -0.446494, -0.145075, 0.469472, 0.839733, 0.272846, 0, -0.309017, 0.951057, -1.3, 0.65, -1.4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YellowBlock"]
+shape = SubResource("Shape_Yellow")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="YellowBlock"]
+cast_shadow = 0
+mesh = SubResource("Mesh_Yellow")
+
+[node name="YellowLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.65, -1.4)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 2.5
+omni_range = 6
+
+[node name="RedBlock" type="StaticBody3D" parent="."]
+transform = Transform3D(0.829038, 0.537531, -0.154134, -0.559193, 0.796922, -0.228514, 0, 0.275637, 0.961262, 0.35, 0.75, 0.1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RedBlock"]
+shape = SubResource("Shape_Red")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RedBlock"]
+cast_shadow = 0
+mesh = SubResource("Mesh_Red")
+
+[node name="RedLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.75, 0.1)
+light_color = Color(1, 0.3, 0.25, 1)
+light_energy = 3
+omni_range = 6
+
+[node name="GreenBlock" type="StaticBody3D" parent="."]
+transform = Transform3D(0.866025, 0.17101, 0.469846, 0, 0.939693, -0.34202, -0.5, 0.296198, 0.813798, 1.5, 0.85, -1.9)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GreenBlock"]
+shape = SubResource("Shape_Green")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GreenBlock"]
+cast_shadow = 0
+mesh = SubResource("Mesh_Green")
+
+[node name="GreenLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.85, -1.9)
+light_color = Color(0.3, 1, 0.45, 1)
+light_energy = 2.5
+omni_range = 6
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.999635, 0.00621554, -0.0262925, -0, 0.973177, 0.230059, 0.0270172, -0.229975, 0.972821, 0, 2.3, 6.2)
+fov = 60.0
+script = ExtResource("1_cam")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="HUD"]
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 900.0
+offset_bottom = 120.0
