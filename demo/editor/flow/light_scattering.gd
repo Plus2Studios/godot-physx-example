@@ -2,11 +2,12 @@ extends Node3D
 
 # PhysXFlow3D.light_scattering: a green light low in a swirling sea of ground fog,
 # ringed by pillars and a leaning slab. The light glows through the fog around
-# it, and the pillars, the slab and the walker cast dark shafts through that
-# glow (PhysXFlow3D.scattering_receive_shadows). The fog is one thin, cold box emitter
+# it, and the pillars, the slab and the walker cast dark shafts through that glow
+# (PhysXFlow3D.scattering_receive_shadows). The fog is one thin, cold box emitter
 # over the whole floor (it feeds gently and stays down), wheeled round the light
-# by smoke-free stirrers; a capsule on a spinning hub wades through it. A dim
-# blue moon keeps the rest of the fog dark.
+# by smoke-free stirrers; a capsule on a hub turning against that swirl wades
+# through it, cutting across the flow. A dim blue moon keeps the rest of the fog
+# dark.
 #
 #   L        light scattering on / off
 #   K        the glow's shadows on / off (scattering_receive_shadows)
