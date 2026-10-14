@@ -121,7 +121,6 @@ smoke_color = Color(0.55, 0.62, 0.75, 1)
 emission_strength = 0.0
 light_scattering = true
 scattering_anisotropy = 0.2
-scattering_shadow_steps = 6
 
 [node name="GroundFog" type="PhysXFlowEmitter3D" parent="." unique_id=397615809]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
