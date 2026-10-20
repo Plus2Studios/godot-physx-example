@@ -4,17 +4,21 @@ extends Node3D
 # node: select the fluid to see its inspector and drag its spawn-region gizmo
 # handles in the viewport. Press Play and it fills the tank.
 #
-#   SPACE  drop a ball    R  reset    ESC
+#   SPACE  drop a ball    M  render mode    R  reset    ESC
 
 @onready var _fluid: PhysXParticleFluid3D = $PhysXParticleFluid3D
 @onready var _hud: Label = $HUD/Label
 var _balls: Array[RigidBody3D] = []
+const MODES := ["Particles", "Isosurface", "Screen Space"]
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_SPACE:
 				_drop_ball()
+			KEY_M:
+				# Particles -> Isosurface -> Screen Space, live.
+				_fluid.render_mode = ((_fluid.render_mode + 1) % MODES.size()) as PhysXParticleFluid3D.RenderMode
 			KEY_R:
 				for b in _balls:
 					if is_instance_valid(b):
@@ -43,5 +47,5 @@ func _drop_ball() -> void:
 	_balls.append(rb)
 
 func _process(_dt: float) -> void:
-	_hud.text = "PhysXParticleFluid3D showcase   SPACE ball   R reset   ESC\nparticles: %d   FPS: %d" % [
-		_fluid.get_live_particle_count(), Engine.get_frames_per_second()]
+	_hud.text = "PhysXParticleFluid3D showcase   SPACE ball   M render mode   R reset   ESC\nparticles: %d   render: %s   FPS: %d" % [
+		_fluid.get_live_particle_count(), MODES[_fluid.render_mode], Engine.get_frames_per_second()]
