@@ -96,5 +96,9 @@ func _physics_process(delta: float) -> void:
 	_char.move_and_slide()
 
 func _process(_dt: float) -> void:
-	_hud.text = "PhysXChunkEmitter3D showcase (node-based)   L-click shoot   R-click singularity   R reset   ESC\nactive chunks: %d / %d     FPS: %d" % [
-		_debris.get_active_chunk_count(), _debris.max_active, Engine.get_frames_per_second()]
+	# The camera's exact view, so a screenshot can be reproduced.
+	var cam_pos := _cam.global_position
+	var cam_rot := _cam.global_rotation_degrees
+	_hud.text = "PhysXChunkEmitter3D showcase (node-based)   L-click shoot   R-click singularity   R reset   ESC\nactive chunks: %d / %d     FPS: %d\ncamera pos (%.2f, %.2f, %.2f)   rot (%.1f, %.1f, %.1f)" % [
+		_debris.get_active_chunk_count(), _debris.max_active, Engine.get_frames_per_second(),
+		cam_pos.x, cam_pos.y, cam_pos.z, cam_rot.x, cam_rot.y, cam_rot.z]
