@@ -40,6 +40,10 @@ size = Vector3(10, 6, 0.6)
 radius = 0.4
 height = 1.8
 
+[sub_resource type="SphereMesh" id="SphereMesh_wh2v7"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_jb1rs"]
+
 [node name="DebrisShowcase" type="Node3D" unique_id=1542357402]
 script = ExtResource("1")
 
@@ -80,6 +84,7 @@ transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -9, 3,
 shape = SubResource("WallShape")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="LeftWall" unique_id=235823831]
+transform = Transform3D(0.99999964, 0.0005808475, -0.00059159193, -0.0005828162, 0.9999943, -0.0033343039, 0.00058965257, 0.0033346475, 0.9999943, 0, 0, 0)
 material_override = SubResource("Wall_1")
 mesh = SubResource("WallMesh")
 
@@ -90,6 +95,7 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 9, 3, 
 shape = SubResource("WallShape")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RightWall" unique_id=869806538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8848648e-05, -0.024214745, -3.2424927e-05)
 material_override = SubResource("Wall_1")
 mesh = SubResource("WallMesh")
 
@@ -147,7 +153,7 @@ emitting = true
 emission_rate = 1500.0
 emission_radius = 0.111
 emission_velocity = Vector3(0.35, -2.5, 0.35)
-surface_mesh = true
+render_mode = 2
 foam_particle_count = 50
 foam_lifetime = 0.01
 foam_threshold = 220.0
@@ -170,12 +176,39 @@ emitting = true
 emission_rate = 1500.0
 emission_radius = 0.111
 emission_velocity = Vector3(0.35, -2.5, 0.35)
-surface_mesh = true
+render_mode = 2
 foam_particle_count = 50
 foam_lifetime = 0.01
 foam_threshold = 220.0
 foam_buoyancy = 1.0
 foam_size = 0.009
+adhesion = 0.2
+surface_friction = 0.5
+
+[node name="PhysXParticleFluid3D4" type="PhysXParticleFluid3D" parent="." unique_id=456025519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.033325717, 2.2123258, -4.161996)
+material_override = ExtResource("3_jb1rs")
+solver = 2
+particle_count = 10000
+particle_size = 0.02
+mpm_domain_size = Vector3(5, 20, 5)
+mpm_substeps = 3
+mpm_colliders = Array[NodePath]([NodePath("../Ground"), NodePath("../Debris"), NodePath("../MeshInstance3D")])
+mpm_auto_colliders = true
+spawn_region_size = Vector3(1.06, 1.3912094, 0.998)
+spawn_on_ready = false
+emitting = true
+emission_rate = 1500.0
+emission_radius = 0.111
+emission_velocity = Vector3(0.35, -2.5, 0.35)
+render_mode = 2
+foam_particle_count = 50
+foam_lifetime = 0.01
+foam_threshold = 220.0
+foam_buoyancy = 1.0
+foam_size = 0.009
+adhesion = 0.2
+surface_friction = 0.5
 
 [node name="PhysXParticleFluid3D2" type="PhysXParticleFluid3D" parent="." unique_id=1104867442]
 transform = Transform3D(0.69908065, -0.7150428, 0, 0.7150428, 0.69908065, 0, 0, 0, 1, -7.3650985, 2.2123258, 0.0061337203)
@@ -193,9 +226,16 @@ emitting = true
 emission_rate = 1500.0
 emission_radius = 0.111
 emission_velocity = Vector3(0.35, -2.5, 0.35)
-surface_mesh = true
+render_mode = 2
 foam_particle_count = 50
 foam_lifetime = 0.01
 foam_threshold = 220.0
 foam_buoyancy = 1.0
 foam_size = 0.009
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1532849108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15130866, 0.49623144, -4.118477)
+mesh = SubResource("SphereMesh_wh2v7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D" unique_id=1227367464]
+shape = SubResource("SphereShape3D_jb1rs")
