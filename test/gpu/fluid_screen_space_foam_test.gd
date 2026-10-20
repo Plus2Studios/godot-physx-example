@@ -2,8 +2,8 @@ extends SceneTree
 
 # Screen Space PhysXParticleFluid3D draws its foam: two identical splashes (a
 # fast PBD stream into a floor), one with foam on, side by side, seen from
-# above, with a rough material (no bright highlights). The foamed one shows
-# near-white foam over its pool, the other next to none. (In Screen Space the
+# above, with a rough material (no bright highlights), over a dark floor. The
+# foamed one shows white foam over its pool, the other next to none. (In Screen Space the
 # foam spheres are hidden and the effect draws the foam: this catches it not
 # drawing.)
 # Needs a window and a CUDA device (PBD) -- skips otherwise:
@@ -54,6 +54,9 @@ func _initialize() -> void:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(16, 8)
 	floor_mesh.mesh = pm
+	var fm := StandardMaterial3D.new()
+	fm.albedo_color = Color(0.1, 0.1, 0.1) # dark, so the (lit) white foam stands out
+	floor_mesh.material_override = fm
 	get_root().add_child(floor_mesh)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
@@ -68,14 +71,15 @@ func _initialize() -> void:
 	process_frame.connect(_frame)
 
 
-# Near-white pixels in each half of the frame.
+# Foam-coloured pixels (bright and grey-white: lit foam, not the blue liquid or
+# the dark floor) in each half of the frame.
 func _white(img: Image, left: bool) -> int:
 	var n := 0
 	var w := img.get_width()
 	for y in range(0, img.get_height(), 2):
 		for x in range(0 if left else w / 2, w / 2 if left else w, 2):
 			var c := img.get_pixel(x, y)
-			if c.r > 0.9 and c.g > 0.9 and c.b > 0.9:
+			if minf(c.r, minf(c.g, c.b)) > 0.45 and maxf(c.r, maxf(c.g, c.b)) - minf(c.r, minf(c.g, c.b)) < 0.2:
 				n += 1
 	return n
 
@@ -91,7 +95,7 @@ func _frame() -> void:
 		var foamy := _white(img, true)
 		var plain := _white(img, false)
 		var ok := _foamy.get_live_foam_count() > 100 and foamy > plain * 5 + 100
-		print("[ss_foam] foam particles %d; near-white pixels: foam on %d, foam off %d" % [_foamy.get_live_foam_count(), foamy, plain])
+		print("[ss_foam] foam particles %d; foam-white pixels: foam on %d, foam off %d" % [_foamy.get_live_foam_count(), foamy, plain])
 		img.save_png("user://fluid_screen_space_foam_test.png")
 		print("[ss_foam] ", "PASS" if ok else "FAIL")
 		quit(0 if ok else 1)
