@@ -9,6 +9,8 @@ extends Node3D
 #   M     move around the circle / stay in place
 #   F     follow camera / free fly (WASD + hold RMB)
 #   R     reset the cloth onto the animated pose
+#   B     legs / feet colliders: capsules or boxes (live, no rebuild)
+#   V     show the colliders (capsules green, boxes yellow)
 
 const ANIMS := [
 	["Idle", 0.0],
@@ -37,6 +39,14 @@ var _moving := true
 var _follow := true
 var _angle := 0.0
 var _viewport_rid: RID
+# Leg / foot physical bones: each capsule gets a box twin of the same size; B
+# switches which of the two is enabled (the cloth reads them live).
+const BOX_BONES := ["LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg", "LeftFoot", "RightFoot"]
+var _leg_pairs: Array = [] # [capsule CollisionShape3D, box CollisionShape3D]
+var _boxes := false
+var _skel: Skeleton3D
+var _gizmos: Array = [] # [MeshInstance3D, PhysicalBone3D, CollisionShape3D, bone]
+var _show_colliders := false
 
 func _ready() -> void:
 	_ap = character.find_children("*", "AnimationPlayer", true, false)[0]
@@ -47,7 +57,57 @@ func _ready() -> void:
 	_viewport_rid = get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_viewport_rid, true)
 	_fly = FlyCamera.new(_cam)
+	_setup_colliders()
 	_play(start_animation)
+
+func _setup_colliders() -> void:
+	_skel = character.find_children("*", "Skeleton3D", true, false)[0]
+	for pb: PhysicalBone3D in character.find_children("*", "PhysicalBone3D", true, false):
+		for cs in pb.get_children():
+			if not (cs is CollisionShape3D) or not ((cs as CollisionShape3D).shape is CapsuleShape3D):
+				continue
+			var cap := (cs as CollisionShape3D).shape as CapsuleShape3D
+			var twin: CollisionShape3D = null
+			if pb.bone_name in BOX_BONES:
+				twin = CollisionShape3D.new()
+				var box := BoxShape3D.new()
+				box.size = Vector3(cap.radius * 2.0, cap.height, cap.radius * 2.0)
+				twin.shape = box
+				twin.transform = (cs as CollisionShape3D).transform
+				twin.disabled = true
+				pb.add_child(twin)
+				_leg_pairs.append([cs, twin])
+			_add_gizmo(pb, cs)
+			if twin != null:
+				_add_gizmo(pb, twin)
+
+func _add_gizmo(pb: PhysicalBone3D, cs: CollisionShape3D) -> void:
+	var mi := MeshInstance3D.new()
+	var m := StandardMaterial3D.new()
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	if cs.shape is BoxShape3D:
+		var bm := BoxMesh.new()
+		bm.size = (cs.shape as BoxShape3D).size
+		mi.mesh = bm
+		m.albedo_color = Color(1.0, 0.8, 0.2, 0.45)
+	else:
+		var cm := CapsuleMesh.new()
+		cm.radius = (cs.shape as CapsuleShape3D).radius
+		cm.height = (cs.shape as CapsuleShape3D).height
+		mi.mesh = cm
+		m.albedo_color = Color(0.3, 1.0, 0.4, 0.35)
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visible = false
+	add_child(mi)
+	_gizmos.append([mi, pb, cs, _skel.find_bone(pb.bone_name)])
+
+func _toggle_boxes() -> void:
+	_boxes = not _boxes
+	for pair in _leg_pairs:
+		(pair[0] as CollisionShape3D).disabled = _boxes
+		(pair[1] as CollisionShape3D).disabled = not _boxes
 
 func _play(i: int) -> void:
 	_anim = clampi(i, 0, ANIMS.size() - 1)
@@ -75,6 +135,13 @@ func _process(delta: float) -> void:
 	else:
 		_fly.process(delta)
 
+	for g in _gizmos:
+		var mi: MeshInstance3D = g[0]
+		mi.visible = _show_colliders and not (g[2] as CollisionShape3D).disabled
+		if mi.visible:
+			# Where the PhysicalBone3D puts its shape: bone pose * body offset * shape.
+			mi.global_transform = _skel.global_transform * _skel.get_bone_global_pose(g[3]) * (g[1] as PhysicalBone3D).body_offset * (g[2] as CollisionShape3D).transform
+
 	var particles := 0
 	for c in _cloths:
 		particles += c.get_particle_count()
@@ -83,8 +150,8 @@ func _process(delta: float) -> void:
 		Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
 		RenderingServer.viewport_get_measured_render_time_cpu(_viewport_rid) + RenderingServer.get_frame_setup_time_cpu(),
 		RenderingServer.viewport_get_measured_render_time_gpu(_viewport_rid)]
-	_hud.text = "Character cloth -- PhysXSkinnedCloth3D (compute shaders, any GPU)\n1-7 animation   C cloth on/off   M move/stay   F follow/fly (WASD + RMB)   R reset\n%s   cloth %s   %d particles   FPS %d%s" % [
-		ANIMS[_anim][0], "ON" if _cloth_on() else "OFF", particles, Engine.get_frames_per_second(), timing]
+	_hud.text = "Character cloth -- PhysXSkinnedCloth3D (compute shaders, any GPU)\n1-7 animation   C cloth on/off   M move/stay   F follow/fly (WASD + RMB)   R reset   B leg boxes   V colliders\n%s   cloth %s   legs: %s   %d particles   FPS %d%s" % [
+		ANIMS[_anim][0], "ON" if _cloth_on() else "OFF", "boxes" if _boxes else "capsules", particles, Engine.get_frames_per_second(), timing]
 
 func _cloth_on() -> bool:
 	return not _cloths.is_empty() and _cloths[0].is_inside_tree()
@@ -102,6 +169,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_moving = not _moving
 		elif k == KEY_F:
 			_follow = not _follow
+		elif k == KEY_B:
+			_toggle_boxes()
+		elif k == KEY_V:
+			_show_colliders = not _show_colliders
 		elif k == KEY_R:
 			for c in _cloths:
 				c.reset()
